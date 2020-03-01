@@ -26,6 +26,9 @@ func main() {
 	r.HandleFunc("/user/{user_id:[0-9]+}", handler.UserForUserIdHandler).Methods(http.MethodGet)
 	r.HandleFunc("/user", handler.CreateUserHandler).Methods(http.MethodPost)
 
+	r.HandleFunc("/user/{user_id:[0-9]+}", handler.DeleteUserHandler).Methods(http.MethodDelete)
+	// r.HandleFunc("/user/{user_id:[0-9]+}", handler.UpdateUserHandler).Methods(http.MethodPut)
+
 	addr := config.GetServerAddr()
 	log.Println("start server " + addr)
 	log.Fatal(http.ListenAndServe(addr, r))

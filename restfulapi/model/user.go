@@ -67,17 +67,32 @@ func GetUserList() (Users, error) {
 	return users, nil
 }
 
-func GetUser(userID string) (User, error) {
+func (user *User) GetUser() (User, error) {
 	db := database.DBConnection()
-	row := db.QueryRow(`select id, name, email, job from `+TABLE_NAME+` where id = ? and deleted_at is null`, userID)
+	row := db.QueryRow(`select id, name, email, job from `+TABLE_NAME+` where id = ? and deleted_at is null`, user.Id)
 
-	var user User
-	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Job)
+	var userbox User
+	err := row.Scan(&userbox.Id, &userbox.Name, &userbox.Email, &userbox.Job)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return user, fmt.Errorf("data not found")
+			return userbox, fmt.Errorf("data not found")
 		}
-		return user, err
+		return userbox, err
 	}
-	return user, nil
+	return userbox, nil
+}
+
+func (user *User) DeleteUser() error {
+	_, err := user.GetUser()
+	if err != nil {
+		return err
+	}
+
+	db := database.DBConnection()
+	_, err = db.Exec(`update `+TABLE_NAME+` set deleted_at = datetime('now', 'localtime') where id = ?`, user.Id)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	return nil
 }
