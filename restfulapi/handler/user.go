@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
 	"go-example/restfulapi/model"
 	"go-example/restfulapi/responsebody"
 )
@@ -21,20 +23,17 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 	responsebody.StatusOKWithUsers(w, users)
 }
 
+// UserForUserIdHandler ,
+// curl -v -X GET curl -v -X GET http://localhost:8080/user/1
 func UserForUserIdHandler(w http.ResponseWriter, r *http.Request) {
-	// vars := mux.Vars(r)
-	// userId, err := strconv.Atoi(vars["user_id"])
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	vars := mux.Vars(r)
 
-	// if userId >= 0 && userId < len(UserList) {
-	// 	err := json.NewEncoder(w).Encode(UserList[userId])
-	// 	if err != nil {
-	// 		log.Fatalln(err)
-	// 	}
-	// }
-	// log.Printf("not found user_id: %d\n", userId)
+	user, err := model.GetUser(vars["user_id"])
+	if err != nil {
+		responsebody.StatusBadRequest(w, err.Error())
+		return
+	}
+	responsebody.StatusOKWithUser(w, user)
 }
 
 // CreateUserHandler ,

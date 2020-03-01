@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -47,7 +48,7 @@ func (u *User) CreateValidator() error {
 
 func GetUserList() (Users, error) {
 	db := database.DBConnection()
-	rows, err := db.Query(`select id, name, email, job from ` + TABLE_NAME + `where delete_at is null`)
+	rows, err := db.Query(`select id, name, email, job from ` + TABLE_NAME + ` where deleted_at is null`)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
@@ -64,4 +65,19 @@ func GetUserList() (Users, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func GetUser(userID string) (User, error) {
+	db := database.DBConnection()
+	row := db.QueryRow(`select id, name, email, job from `+TABLE_NAME+` where id = ? and deleted_at is null`, userID)
+
+	var user User
+	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Job)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, fmt.Errorf("data not found")
+		}
+		return user, err
+	}
+	return user, nil
 }
