@@ -3,18 +3,22 @@ package handler
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 
 	"go-example/restfulapi/model"
+	"go-example/restfulapi/responsebody"
 )
 
+// UsersHandler ,
+// curl -v -X GET http://localhost:8080/ or curl -v -X GET http://localhost:8080/users
 func UsersHandler(w http.ResponseWriter, r *http.Request) {
-	// err := json.NewEncoder(w).Encode(UserList)
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	users, err := model.GetUserList()
+	if err != nil {
+		responsebody.StatusInternalServerError(w, err.Error())
+		return
+	}
+	responsebody.StatusOKWithUsers(w, users)
 }
 
 func UserForUserIdHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,52 +37,50 @@ func UserForUserIdHandler(w http.ResponseWriter, r *http.Request) {
 	// log.Printf("not found user_id: %d\n", userId)
 }
 
+// CreateUserHandler ,
+// curl -v -X POST -H "Content-type:application/json" -d '{"name":"andy", "job":"profession", "email":"andy@yahoo.com"}' http://localhost:8080/user
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusBadRequest)
+		responsebody.StatusBadRequest(w, "")
 		return
 	}
 
 	if r.Header.Get("Content-type") != "application/json" {
-		w.WriteHeader(http.StatusBadRequest)
+		responsebody.StatusBadRequest(w, "")
 		return
 	}
 
 	length, err := strconv.Atoi(r.Header.Get("Content-Length"))
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		responsebody.StatusInternalServerError(w, err.Error())
 		return
 	}
 
 	body := make([]byte, length)
 	length, err = r.Body.Read(body)
 	if err != nil && err != io.EOF {
-		w.WriteHeader(http.StatusInternalServerError)
+		responsebody.StatusInternalServerError(w, err.Error())
 		return
 	}
 
-	var user model.User
-	err = json.Unmarshal(body[:length], &user)
+	user := model.NewUser()
+	err = json.Unmarshal(body[:length], user)
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		responsebody.StatusInternalServerError(w, err.Error())
 		return
 	}
 
 	err = user.CreateValidator()
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		responsebody.StatusBadRequest(w, err.Error())
 		return
 	}
 
 	err = user.CreateUser()
 	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		responsebody.StatusBadRequest(w, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(nil)
+	responsebody.StatusOK(w)
 }

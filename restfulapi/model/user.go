@@ -7,7 +7,10 @@ import (
 	"go-example/restfulapi/database"
 )
 
+const TABLE_NAME = "users"
+
 type User struct {
+	Id    string `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 	Job   string `json:"job"`
@@ -15,9 +18,13 @@ type User struct {
 
 type Users []User
 
-func (u User) CreateUser() error {
+func NewUser() *User {
+	return &User{}
+}
+
+func (u *User) CreateUser() error {
 	db := database.DBConnection()
-	_, err := db.Exec(`insert into users (name, email, job) values (?, ?, ?)`, u.Name, u.Email, u.Job)
+	_, err := db.Exec(`insert into `+TABLE_NAME+` (name, email, job) values (?, ?, ?)`, u.Name, u.Email, u.Job)
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -25,7 +32,7 @@ func (u User) CreateUser() error {
 	return nil
 }
 
-func (u User) CreateValidator() error {
+func (u *User) CreateValidator() error {
 	if u.Name == "" {
 		return fmt.Errorf("name is required")
 	}
@@ -36,4 +43,25 @@ func (u User) CreateValidator() error {
 		return fmt.Errorf("job is required")
 	}
 	return nil
+}
+
+func GetUserList() (Users, error) {
+	db := database.DBConnection()
+	rows, err := db.Query(`select id, name, email, job from ` + TABLE_NAME + `where delete_at is null`)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users Users
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Job)
+		if err != nil {
+			log.Println(err)
+		}
+		users = append(users, user)
+	}
+	return users, nil
 }
