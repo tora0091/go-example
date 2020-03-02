@@ -2,8 +2,9 @@ package responsebody
 
 import (
 	"encoding/json"
-	"go-example/restfulapi/model"
 	"net/http"
+
+	"go-example/restfulapi/model"
 )
 
 type HttpStatus struct {
