@@ -104,7 +104,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responsebody.StatusOK(w)
+	responsebody.StatusOKWithUser(w, *user)
 }
 
 func getJsonBody(r *http.Request) (*model.User, error) {
