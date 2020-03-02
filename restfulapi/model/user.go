@@ -46,11 +46,15 @@ func (u *User) CreateValidator() error {
 	return nil
 }
 
+func (u *User) UpdateValidator() error {
+	return u.CreateValidator()
+}
+
 func GetUserList() (Users, error) {
 	db := database.DBConnection()
 	rows, err := db.Query(`select id, name, email, job from ` + TABLE_NAME + ` where deleted_at is null`)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -75,8 +79,10 @@ func (user *User) GetUser() (User, error) {
 	err := row.Scan(&userbox.Id, &userbox.Name, &userbox.Email, &userbox.Job)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			log.Println(err)
 			return userbox, fmt.Errorf("data not found")
 		}
+		log.Println(err)
 		return userbox, err
 	}
 	return userbox, nil
@@ -85,13 +91,31 @@ func (user *User) GetUser() (User, error) {
 func (user *User) DeleteUser() error {
 	_, err := user.GetUser()
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
 	db := database.DBConnection()
 	_, err = db.Exec(`update `+TABLE_NAME+` set deleted_at = datetime('now', 'localtime') where id = ?`, user.Id)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err)
+		return err
+	}
+	return nil
+}
+
+func (user *User) UpdateUser() error {
+	_, err := user.GetUser()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	db := database.DBConnection()
+	_, err = db.Exec(`update `+TABLE_NAME+` set name = ?, email = ?, job = ?, updated_at = datetime('now', 'localtime') where id = ?`,
+		user.Name, user.Email, user.Job, user.Id)
+	if err != nil {
+		log.Println(err)
 		return err
 	}
 	return nil

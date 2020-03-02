@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -42,26 +43,7 @@ func UserForUserIdHandler(w http.ResponseWriter, r *http.Request) {
 // CreateUserHandler ,
 // curl -v -X POST -H "Content-type:application/json" -d '{"name":"andy", "job":"profession", "email":"andy@yahoo.com"}' http://localhost:8080/user
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Content-type") != "application/json" {
-		responsebody.StatusBadRequest(w, "")
-		return
-	}
-
-	length, err := strconv.Atoi(r.Header.Get("Content-Length"))
-	if err != nil {
-		responsebody.StatusInternalServerError(w, err.Error())
-		return
-	}
-
-	body := make([]byte, length)
-	length, err = r.Body.Read(body)
-	if err != nil && err != io.EOF {
-		responsebody.StatusInternalServerError(w, err.Error())
-		return
-	}
-
-	user := model.NewUser()
-	err = json.Unmarshal(body[:length], user)
+	user, err := getJsonBody(r)
 	if err != nil {
 		responsebody.StatusInternalServerError(w, err.Error())
 		return
@@ -96,4 +78,55 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responsebody.StatusOK(w)
+}
+
+// UpdateUserHandler ,
+// curl -v -X PUT -H "Content-type:application/json" -d '{"name":"watanabe akira", "job":"actor", "email":"w.akkun92@yahoo.com"}' http://localhost:8080/user/10
+func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
+	user, err := getJsonBody(r)
+	if err != nil {
+		responsebody.StatusInternalServerError(w, err.Error())
+		return
+	}
+
+	vars := mux.Vars(r)
+	user.Id = vars["user_id"]
+
+	err = user.UpdateValidator()
+	if err != nil {
+		responsebody.StatusBadRequest(w, err.Error())
+		return
+	}
+
+	err = user.UpdateUser()
+	if err != nil {
+		responsebody.StatusBadRequest(w, err.Error())
+		return
+	}
+
+	responsebody.StatusOK(w)
+}
+
+func getJsonBody(r *http.Request) (*model.User, error) {
+	if r.Header.Get("Content-type") != "application/json" {
+		return nil, fmt.Errorf("missing content type")
+	}
+
+	length, err := strconv.Atoi(r.Header.Get("Content-Length"))
+	if err != nil {
+		return nil, err
+	}
+
+	body := make([]byte, length)
+	length, err = r.Body.Read(body)
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+
+	user := model.NewUser()
+	err = json.Unmarshal(body[:length], user)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
