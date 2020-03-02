@@ -14,7 +14,7 @@ import (
 )
 
 // UsersHandler ,
-// curl -v -X GET http://localhost:8080/ or curl -v -X GET http://localhost:8080/users
+// curl -v -X GET -H 'Authorization: Bearer {auth key}' http://localhost:8080/ or curl -v -X GET -H 'Authorization: Bearer {auth key}' http://localhost:8080/api/users
 func UsersHandler(w http.ResponseWriter, r *http.Request) {
 	users, err := model.GetUserList()
 	if err != nil {
@@ -25,7 +25,7 @@ func UsersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // UserForUserIdHandler ,
-// curl -v -X GET http://localhost:8080/user/1
+// curl -v -X GET -H 'Authorization: Bearer {auth key}' http://localhost:8080/api/user/1
 func UserForUserIdHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -41,7 +41,7 @@ func UserForUserIdHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateUserHandler ,
-// curl -v -X POST -H "Content-type:application/json" -d '{"name":"andy", "job":"profession", "email":"andy@yahoo.com"}' http://localhost:8080/user
+// curl -v -X POST -H 'Authorization: Bearer {auth key}' -H "Content-type:application/json" -d '{"name":"andy", "job":"profession", "email":"andy@yahoo.com"}' http://localhost:8080/api/user
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := getJsonBody(r)
 	if err != nil {
@@ -65,7 +65,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteUserHandler ,
-// curl -v -X DELETE http://localhost:8080/user/1
+// curl -v -X DELETE -H 'Authorization: Bearer {auth key}' http://localhost:8080/api/user/1
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -81,7 +81,7 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateUserHandler ,
-// curl -v -X PUT -H "Content-type:application/json" -d '{"name":"watanabe akira", "job":"actor", "email":"w.akkun92@yahoo.com"}' http://localhost:8080/user/10
+// curl -v -X PUT -H 'Authorization: Bearer {auth key}' -H "Content-type:application/json" -d '{"name":"watanabe akira", "job":"actor", "email":"w.akkun92@yahoo.com"}' http://localhost:8080/api/user/10
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := getJsonBody(r)
 	if err != nil {
