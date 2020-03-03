@@ -3,15 +3,22 @@ package main
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
+	"log"
+	"math"
+	"math/big"
 	"time"
 )
+
+const Difficulty = 16
 
 type Block struct {
 	Hash        []byte
 	Transaction []byte
 	PrevHash    []byte
 	TimeStamp   []byte
+	Nonce       int
 }
 
 type Blockchain struct {
@@ -20,13 +27,14 @@ type Blockchain struct {
 
 func CreateBlock(transaction string, prevHash []byte) *Block {
 	timeStamp := time.Now().String()
-	info := bytes.Join([][]byte{[]byte(transaction), []byte(timeStamp), prevHash}, []byte{})
-	hash := sha256.Sum256(info)
+	nonce, hash := ProofOfWork(transaction, prevHash, timeStamp)
+
 	return &Block{
 		Hash:        hash[:],
 		Transaction: []byte(transaction),
 		PrevHash:    prevHash,
 		TimeStamp:   []byte(timeStamp),
+		Nonce:       nonce,
 	}
 }
 
@@ -58,4 +66,41 @@ func main() {
 		fmt.Printf("%x\n", block.Hash)
 		fmt.Printf("-------------------------------\n")
 	}
+}
+
+func ProofOfWork(transaction string, prevHash []byte, timeStamp string) (int, []byte) {
+	var intHash big.Int
+	var hash [32]byte
+
+	target := big.NewInt(1)
+	target.Lsh(target, uint(256-Difficulty))
+
+	nonce := 0
+	for nonce < math.MaxInt64 {
+		data := bytes.Join([][]byte{
+			[]byte(transaction),
+			[]byte(timeStamp),
+			prevHash,
+			ToHex(int64(nonce)),
+		}, []byte{})
+
+		hash = sha256.Sum256(data)
+		intHash.SetBytes(hash[:])
+
+		if intHash.Cmp(target) == -1 {
+			break
+		} else {
+			nonce++
+		}
+	}
+	return nonce, hash[:]
+}
+
+func ToHex(num int64) []byte {
+	buff := new(bytes.Buffer)
+	err := binary.Write(buff, binary.BigEndian, num)
+	if err != nil {
+		log.Panic(err)
+	}
+	return buff.Bytes()
 }
