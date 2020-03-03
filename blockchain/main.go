@@ -19,6 +19,7 @@ type Block struct {
 	PrevHash    []byte
 	TimeStamp   []byte
 	Nonce       int
+	Difficulty  int
 }
 
 type Blockchain struct {
@@ -35,6 +36,7 @@ func CreateBlock(transaction string, prevHash []byte) *Block {
 		PrevHash:    prevHash,
 		TimeStamp:   []byte(timeStamp),
 		Nonce:       nonce,
+		Difficulty:  Difficulty,
 	}
 }
 
@@ -60,10 +62,11 @@ func main() {
 	chain.AddBlock("50 cent from Allen to Fred")
 
 	for _, block := range chain.blockchain {
-		fmt.Printf("%x\n", block.PrevHash)
-		fmt.Printf("%s\n", block.Transaction)
-		fmt.Printf("%s\n", block.TimeStamp)
-		fmt.Printf("%x\n", block.Hash)
+		fmt.Printf("prev hash   : %x\n", block.PrevHash)
+		fmt.Printf("transaction : %s\n", block.Transaction)
+		fmt.Printf("timestamp   : %s\n", block.TimeStamp)
+		fmt.Printf("hash        : %x\n", block.Hash)
+		fmt.Printf("verify      : %t\n", block.Verify())
 		fmt.Printf("-------------------------------\n")
 	}
 }
@@ -94,6 +97,26 @@ func ProofOfWork(transaction string, prevHash []byte, timeStamp string) (int, []
 		}
 	}
 	return nonce, hash[:]
+}
+
+func (b *Block) Verify() bool {
+	var intHash big.Int
+	var hash [32]byte
+
+	target := big.NewInt(1)
+	target.Lsh(target, uint(256-b.Difficulty))
+
+	data := bytes.Join([][]byte{
+		[]byte(b.Transaction),
+		[]byte(b.TimeStamp),
+		b.PrevHash,
+		ToHex(int64(b.Nonce)),
+	}, []byte{})
+
+	hash = sha256.Sum256(data)
+	intHash.SetBytes(hash[:])
+
+	return intHash.Cmp(target) == -1
 }
 
 func ToHex(num int64) []byte {
