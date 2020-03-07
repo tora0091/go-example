@@ -44,7 +44,7 @@ func Todo(c *gin.Context) {
 
 // curl -v -X POST -H "Content-type: application/json" -d '{"title": "hello world", "completed":false}' http://localhost:8080/api/v2/todo
 func CreateTodo(c *gin.Context) {
-	todo := jsons.Todo{}
+	var todo jsons.Todo
 	now := time.Now()
 	todo.CreatedAt = now
 	todo.UpdatedAt = now
@@ -74,7 +74,7 @@ func UpdateTodo(c *gin.Context) {
 		return
 	}
 
-	updateData := jsons.Todo{}
+	var updateData jsons.Todo
 	updateData.UpdatedAt = time.Now()
 
 	err = c.BindJSON(&updateData)
@@ -83,7 +83,7 @@ func UpdateTodo(c *gin.Context) {
 		return
 	}
 
-	todo := jsons.Todo{}
+	var todo jsons.Todo
 	db := database.GetDbConnection()
 	if err = db.First(&todo, id).Update(&updateData).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
@@ -101,7 +101,7 @@ func DeleteTodo(c *gin.Context) {
 		return
 	}
 
-	todo := jsons.Todo{}
+	var todo jsons.Todo
 	db := database.GetDbConnection()
 	if err = db.Delete(&todo, id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
