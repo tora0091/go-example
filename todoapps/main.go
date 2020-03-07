@@ -15,6 +15,12 @@ func init() {
 func main() {
 	router := gin.Default()
 
+	v1 := router.Group("/api/v1")
+	{
+		v1.GET("/users", controllers.Users)
+		v1.POST("/user", controllers.CreateUser)
+	}
+
 	v2 := router.Group("/api/v2")
 	{
 		v2.GET("/todos", controllers.Todos)

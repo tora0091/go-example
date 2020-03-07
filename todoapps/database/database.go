@@ -12,6 +12,7 @@ func InitDatabase() {
 	db := GetDbConnection()
 	defer db.Close()
 	db.AutoMigrate(&tables.Todos{})
+	db.AutoMigrate(&tables.Users{})
 }
 
 func GetDbConnection() *gorm.DB {
