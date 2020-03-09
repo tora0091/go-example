@@ -12,17 +12,17 @@ type Todo struct {
 
 type Todos []Todo
 
-type User struct {
-	ID        uint      `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Address   string    `json:"address"`
-	Job       string    `json:"job"`
-	CreatedAt time.Time `json:"created_ad"`
-	UpdatedAt time.Time `json:"updated_ad"`
-}
+// type User struct {
+// 	ID        uint      `json:"id"`
+// 	Name      string    `json:"name"`
+// 	Email     string    `json:"email"`
+// 	Address   string    `json:"address"`
+// 	Job       string    `json:"job"`
+// 	CreatedAt time.Time `json:"created_ad"`
+// 	UpdatedAt time.Time `json:"updated_ad"`
+// }
 
-type Users []User
+// type Users []User
 
 type JSONStatusOKResponse struct {
 	Status int `json:"status"`
