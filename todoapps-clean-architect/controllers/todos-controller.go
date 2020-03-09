@@ -7,17 +7,21 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"go-example/todoapps/database"
-	"go-example/todoapps/jsons"
+	"go-example/todoapps-clean-architect/entity"
+	"go-example/todoapps-clean-architect/jsons"
+	"go-example/todoapps-clean-architect/repository"
+)
+
+var (
+	todosRepository repository.TodosRepository = repository.NewTodosRepository()
 )
 
 // curl -v -X GET http://localhost:8080/api/v2/todos
 func Todos(c *gin.Context) {
-	db := database.GetDbConnection()
-	defer db.Close()
-
-	var todos jsons.Todos
-	db.Find(&todos)
+	todos, err := todosRepository.FindAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
+	}
 	c.JSON(http.StatusOK, jsons.JSONStatusOKWithDataResponse{Status: http.StatusOK, Data: todos})
 }
 
@@ -30,13 +34,9 @@ func Todo(c *gin.Context) {
 		return
 	}
 
-	db := database.GetDbConnection()
-	defer db.Close()
-
-	var todo jsons.Todo
-	recordNotFound := db.First(&todo, id).RecordNotFound()
-	if recordNotFound {
-		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: "record not found"})
+	todo, err := todosRepository.FindByID(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, jsons.JSONStatusOKWithDataResponse{Status: http.StatusOK, Data: todo})
@@ -44,7 +44,7 @@ func Todo(c *gin.Context) {
 
 // curl -v -X POST -H "Content-type: application/json" -d '{"title": "hello world", "completed":false}' http://localhost:8080/api/v2/todo
 func CreateTodo(c *gin.Context) {
-	var todo jsons.Todo
+	var todo entity.Todo
 	now := time.Now()
 	todo.CreatedAt = now
 	todo.UpdatedAt = now
@@ -55,14 +55,12 @@ func CreateTodo(c *gin.Context) {
 		return
 	}
 
-	db := database.GetDbConnection()
-	db.NewRecord(todo)
-	db.Create(&todo)
-	if db.NewRecord(todo) == false {
-		c.JSON(http.StatusOK, jsons.JSONStatusOKResponse{Status: http.StatusOK})
+	_, err = todosRepository.Save(&todo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
 	}
-	c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: "create error"})
+	c.JSON(http.StatusOK, jsons.JSONStatusOKResponse{Status: http.StatusOK})
 }
 
 // curl -v -X PUT -H "Content-type: application/json" -d '{"title": "hello world sample", "completed":false}' http://localhost:8080/api/v2/todo/3
@@ -74,7 +72,7 @@ func UpdateTodo(c *gin.Context) {
 		return
 	}
 
-	var updateData jsons.Todo
+	var updateData entity.Todo
 	updateData.UpdatedAt = time.Now()
 
 	err = c.BindJSON(&updateData)
@@ -83,9 +81,8 @@ func UpdateTodo(c *gin.Context) {
 		return
 	}
 
-	var todo jsons.Todo
-	db := database.GetDbConnection()
-	if err = db.First(&todo, id).Update(&updateData).Error; err != nil {
+	todo, err := todosRepository.UpdateByID(id, &updateData)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
 	}
@@ -101,11 +98,11 @@ func DeleteTodo(c *gin.Context) {
 		return
 	}
 
-	var todo jsons.Todo
-	db := database.GetDbConnection()
-	if err = db.Delete(&todo, id).Error; err != nil {
+	_, err = todosRepository.DeleteByID(id)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
+
 	}
 	c.JSON(http.StatusOK, jsons.JSONStatusOKResponse{Status: http.StatusOK})
 }
