@@ -11,10 +11,11 @@ import (
 var (
 	todosController controllers.TodosController = controllers.NewTodosController()
 	usersController controllers.UsersController = controllers.NewUsersController()
+	dbDispater      database.Database           = database.NewDatabase()
 )
 
 func init() {
-	database.InitDatabase()
+	dbDispater.InitDatabase()
 }
 
 func main() {

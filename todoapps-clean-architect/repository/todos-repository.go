@@ -15,14 +15,18 @@ type TodosRepository interface {
 	DeleteByID(id int) (*entity.Todo, error)
 }
 
-type todosRepository struct{}
-
-func NewTodosRepository() TodosRepository {
-	return &todosRepository{}
+type todosRepository struct {
+	dbDespatcher database.Database
 }
 
-func (*todosRepository) Save(todo *entity.Todo) (*entity.Todo, error) {
-	db := database.GetDbConnection()
+func NewTodosRepository() TodosRepository {
+	return &todosRepository{
+		dbDespatcher: database.NewDatabase(),
+	}
+}
+
+func (r *todosRepository) Save(todo *entity.Todo) (*entity.Todo, error) {
+	db := r.dbDespatcher.GetDbConnection()
 	db.NewRecord(todo)
 	db.Create(&todo)
 	if db.NewRecord(todo) == false {
@@ -31,8 +35,8 @@ func (*todosRepository) Save(todo *entity.Todo) (*entity.Todo, error) {
 	return nil, fmt.Errorf("failed create todo")
 }
 
-func (*todosRepository) FindAll() (*entity.Todos, error) {
-	db := database.GetDbConnection()
+func (r *todosRepository) FindAll() (*entity.Todos, error) {
+	db := r.dbDespatcher.GetDbConnection()
 	defer db.Close()
 
 	var todos entity.Todos
@@ -41,8 +45,8 @@ func (*todosRepository) FindAll() (*entity.Todos, error) {
 	return &todos, nil
 }
 
-func (*todosRepository) FindByID(id int) (*entity.Todo, error) {
-	db := database.GetDbConnection()
+func (r *todosRepository) FindByID(id int) (*entity.Todo, error) {
+	db := r.dbDespatcher.GetDbConnection()
 	defer db.Close()
 
 	var todo entity.Todo
@@ -53,9 +57,9 @@ func (*todosRepository) FindByID(id int) (*entity.Todo, error) {
 	return &todo, nil
 }
 
-func (*todosRepository) UpdateByID(id int, updateData *entity.Todo) (*entity.Todo, error) {
+func (r *todosRepository) UpdateByID(id int, updateData *entity.Todo) (*entity.Todo, error) {
 	var todo entity.Todo
-	db := database.GetDbConnection()
+	db := r.dbDespatcher.GetDbConnection()
 
 	if err := db.First(&todo, id).Update(updateData).Error; err != nil {
 		return nil, err
@@ -63,9 +67,9 @@ func (*todosRepository) UpdateByID(id int, updateData *entity.Todo) (*entity.Tod
 	return &todo, nil
 }
 
-func (*todosRepository) DeleteByID(id int) (*entity.Todo, error) {
+func (r *todosRepository) DeleteByID(id int) (*entity.Todo, error) {
 	var todo entity.Todo
-	db := database.GetDbConnection()
+	db := r.dbDespatcher.GetDbConnection()
 	if err := db.Delete(&todo, id).Error; err != nil {
 		return nil, err
 	}
