@@ -49,6 +49,11 @@ func CreateTodo(c *gin.Context) {
 		return
 	}
 
+	err = todosService.Validator(todo)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
+	}
+
 	now := time.Now()
 	todo.CreatedAt = now
 	todo.UpdatedAt = now
@@ -73,6 +78,11 @@ func UpdateTodo(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
+	}
+
+	err = todosService.Validator(updateData)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
 	}
 
 	updateData.UpdatedAt = time.Now()

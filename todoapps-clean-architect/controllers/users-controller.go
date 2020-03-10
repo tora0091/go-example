@@ -33,6 +33,12 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	errs := usersService.Validator(user)
+	if errs != nil {
+		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: errs})
+		return
+	}
+
 	now := time.Now()
 	user.CreatedAt = now
 	user.UpdatedAt = now

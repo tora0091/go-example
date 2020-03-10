@@ -10,6 +10,6 @@ type JSONStatusOKWithDataResponse struct {
 }
 
 type JSONErrorResponse struct {
-	Status  int    `json:"Status"`
-	Message string `json:"Message"`
+	Status  int         `json:"Status"`
+	Message interface{} `json:"Message"`
 }

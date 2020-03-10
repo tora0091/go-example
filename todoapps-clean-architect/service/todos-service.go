@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 type TodosService interface {
 	GetIDParam(c *gin.Context) (int, error)
 	GetRequestParam(c *gin.Context) (*entity.Todo, error)
+	Validator(todo *entity.Todo) error
 }
 
 type todosService struct{}
@@ -36,4 +38,11 @@ func (*todosService) GetRequestParam(c *gin.Context) (*entity.Todo, error) {
 		return nil, err
 	}
 	return &todo, nil
+}
+
+func (*todosService) Validator(todo *entity.Todo) error {
+	if todo.Title == "" {
+		return fmt.Errorf("title is required")
+	}
+	return nil
 }
