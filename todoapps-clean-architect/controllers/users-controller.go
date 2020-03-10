@@ -16,8 +16,19 @@ var (
 	usersService    service.UsersService       = service.NewUsersService()
 )
 
+type UsersController interface {
+	Users(c *gin.Context)
+	CreateUser(c *gin.Context)
+}
+
+type usersController struct{}
+
+func NewUsersController() UsersController {
+	return &usersController{}
+}
+
 // curl -v -X GET http://localhost:8080/api/v1/users
-func Users(c *gin.Context) {
+func (*usersController) Users(c *gin.Context) {
 	users, err := usersRepository.FindAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
@@ -26,7 +37,7 @@ func Users(c *gin.Context) {
 }
 
 // curl -v -X POST -H "Content-type: application/json" -d '{"name": "Alex Murer", "email": "alex@example.com", "address": "Los Angeles, USA", "job": "artist"}' http://localhost:8080/api/v1/user
-func CreateUser(c *gin.Context) {
+func (*usersController) CreateUser(c *gin.Context) {
 	user, err := usersService.GetUsersParam(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
@@ -42,8 +53,6 @@ func CreateUser(c *gin.Context) {
 	now := time.Now()
 	user.CreatedAt = now
 	user.UpdatedAt = now
-
-	// todo: validation
 
 	_, err = usersRepository.Save(user)
 	if err != nil {

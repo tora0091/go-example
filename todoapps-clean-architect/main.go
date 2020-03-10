@@ -8,6 +8,11 @@ import (
 	"go-example/todoapps-clean-architect/database"
 )
 
+var (
+	todosController controllers.TodosController = controllers.NewTodosController()
+	usersController controllers.UsersController = controllers.NewUsersController()
+)
+
 func init() {
 	database.InitDatabase()
 }
@@ -17,17 +22,17 @@ func main() {
 
 	v1 := router.Group("/api/v1")
 	{
-		v1.GET("/users", controllers.Users)
-		v1.POST("/user", controllers.CreateUser)
+		v1.GET("/users", usersController.Users)
+		v1.POST("/user", usersController.CreateUser)
 	}
 
 	v2 := router.Group("/api/v2")
 	{
-		v2.GET("/todos", controllers.Todos)
-		v2.GET("/todo/:id", controllers.Todo)
-		v2.POST("/todo", controllers.CreateTodo)
-		v2.PUT("/todo/:id", controllers.UpdateTodo)
-		v2.DELETE("/todo/:id", controllers.DeleteTodo)
+		v2.GET("/todos", todosController.Todos)
+		v2.GET("/todo/:id", todosController.Todo)
+		v2.POST("/todo", todosController.CreateTodo)
+		v2.PUT("/todo/:id", todosController.UpdateTodo)
+		v2.DELETE("/todo/:id", todosController.DeleteTodo)
 	}
 	router.Run(":8080")
 }

@@ -16,8 +16,22 @@ var (
 	todosService    service.TodosService       = service.NewTodosService()
 )
 
+type TodosController interface {
+	Todos(c *gin.Context)
+	Todo(c *gin.Context)
+	CreateTodo(c *gin.Context)
+	UpdateTodo(c *gin.Context)
+	DeleteTodo(c *gin.Context)
+}
+
+type todosController struct{}
+
+func NewTodosController() TodosController {
+	return &todosController{}
+}
+
 // curl -v -X GET http://localhost:8080/api/v2/todos
-func Todos(c *gin.Context) {
+func (*todosController) Todos(c *gin.Context) {
 	todos, err := todosRepository.FindAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
@@ -26,7 +40,7 @@ func Todos(c *gin.Context) {
 }
 
 // curl -v -X GET http://localhost:8080/api/v2/todo/3
-func Todo(c *gin.Context) {
+func (*todosController) Todo(c *gin.Context) {
 	id, err := todosService.GetIDParam(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
@@ -42,7 +56,7 @@ func Todo(c *gin.Context) {
 }
 
 // curl -v -X POST -H "Content-type: application/json" -d '{"title": "hello world", "completed":false}' http://localhost:8080/api/v2/todo
-func CreateTodo(c *gin.Context) {
+func (*todosController) CreateTodo(c *gin.Context) {
 	todo, err := todosService.GetRequestParam(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
@@ -67,7 +81,7 @@ func CreateTodo(c *gin.Context) {
 }
 
 // curl -v -X PUT -H "Content-type: application/json" -d '{"title": "hello world sample", "completed":false}' http://localhost:8080/api/v2/todo/3
-func UpdateTodo(c *gin.Context) {
+func (*todosController) UpdateTodo(c *gin.Context) {
 	id, err := todosService.GetIDParam(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
@@ -96,7 +110,7 @@ func UpdateTodo(c *gin.Context) {
 }
 
 // curl -v -X DELETE http://localhost:8080/api/v2/todo/8
-func DeleteTodo(c *gin.Context) {
+func (*todosController) DeleteTodo(c *gin.Context) {
 	id, err := todosService.GetIDParam(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
