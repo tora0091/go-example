@@ -11,11 +11,6 @@ import (
 	"go-example/todoapps-clean-architect/service"
 )
 
-var (
-	todosRepository repository.TodosRepository = repository.NewTodosRepository()
-	todosService    service.TodosService       = service.NewTodosService()
-)
-
 type TodosController interface {
 	Todos(c *gin.Context)
 	Todo(c *gin.Context)
@@ -24,15 +19,21 @@ type TodosController interface {
 	DeleteTodo(c *gin.Context)
 }
 
-type todosController struct{}
+type todosController struct {
+	todosRepository repository.TodosRepository
+	todosService    service.TodosService
+}
 
-func NewTodosController() TodosController {
-	return &todosController{}
+func NewTodosController(r repository.TodosRepository, s service.TodosService) TodosController {
+	return &todosController{
+		todosRepository: r,
+		todosService:    s,
+	}
 }
 
 // curl -v -X GET http://localhost:8080/api/v2/todos
-func (*todosController) Todos(c *gin.Context) {
-	todos, err := todosRepository.FindAll()
+func (t *todosController) Todos(c *gin.Context) {
+	todos, err := t.todosRepository.FindAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 	}
@@ -40,14 +41,14 @@ func (*todosController) Todos(c *gin.Context) {
 }
 
 // curl -v -X GET http://localhost:8080/api/v2/todo/3
-func (*todosController) Todo(c *gin.Context) {
-	id, err := todosService.GetIDParam(c)
+func (t *todosController) Todo(c *gin.Context) {
+	id, err := t.todosService.GetIDParam(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
 		return
 	}
 
-	todo, err := todosRepository.FindByID(id)
+	todo, err := t.todosRepository.FindByID(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
 		return
@@ -56,14 +57,14 @@ func (*todosController) Todo(c *gin.Context) {
 }
 
 // curl -v -X POST -H "Content-type: application/json" -d '{"title": "hello world", "completed":false}' http://localhost:8080/api/v2/todo
-func (*todosController) CreateTodo(c *gin.Context) {
-	todo, err := todosService.GetRequestParam(c)
+func (t *todosController) CreateTodo(c *gin.Context) {
+	todo, err := t.todosService.GetRequestParam(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
 	}
 
-	err = todosService.Validator(todo)
+	err = t.todosService.Validator(todo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
 	}
@@ -72,7 +73,7 @@ func (*todosController) CreateTodo(c *gin.Context) {
 	todo.CreatedAt = now
 	todo.UpdatedAt = now
 
-	_, err = todosRepository.Save(todo)
+	_, err = t.todosRepository.Save(todo)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
@@ -81,27 +82,27 @@ func (*todosController) CreateTodo(c *gin.Context) {
 }
 
 // curl -v -X PUT -H "Content-type: application/json" -d '{"title": "hello world sample", "completed":false}' http://localhost:8080/api/v2/todo/3
-func (*todosController) UpdateTodo(c *gin.Context) {
-	id, err := todosService.GetIDParam(c)
+func (t *todosController) UpdateTodo(c *gin.Context) {
+	id, err := t.todosService.GetIDParam(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
 		return
 	}
 
-	updateData, err := todosService.GetRequestParam(c)
+	updateData, err := t.todosService.GetRequestParam(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
 	}
 
-	err = todosService.Validator(updateData)
+	err = t.todosService.Validator(updateData)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
 	}
 
 	updateData.UpdatedAt = time.Now()
 
-	todo, err := todosRepository.UpdateByID(id, updateData)
+	todo, err := t.todosRepository.UpdateByID(id, updateData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
@@ -110,14 +111,14 @@ func (*todosController) UpdateTodo(c *gin.Context) {
 }
 
 // curl -v -X DELETE http://localhost:8080/api/v2/todo/8
-func (*todosController) DeleteTodo(c *gin.Context) {
-	id, err := todosService.GetIDParam(c)
+func (t *todosController) DeleteTodo(c *gin.Context) {
+	id, err := t.todosService.GetIDParam(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
 		return
 	}
 
-	_, err = todosRepository.DeleteByID(id)
+	_, err = t.todosRepository.DeleteByID(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return

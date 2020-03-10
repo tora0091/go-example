@@ -11,25 +11,26 @@ import (
 	"go-example/todoapps-clean-architect/service"
 )
 
-var (
-	usersRepository repository.UsersRepository = repository.NewUsersRepository()
-	usersService    service.UsersService       = service.NewUsersService()
-)
-
 type UsersController interface {
 	Users(c *gin.Context)
 	CreateUser(c *gin.Context)
 }
 
-type usersController struct{}
+type usersController struct {
+	usersRepository repository.UsersRepository
+	usersService    service.UsersService
+}
 
-func NewUsersController() UsersController {
-	return &usersController{}
+func NewUsersController(r repository.UsersRepository, s service.UsersService) UsersController {
+	return &usersController{
+		usersRepository: r,
+		usersService:    s,
+	}
 }
 
 // curl -v -X GET http://localhost:8080/api/v1/users
-func (*usersController) Users(c *gin.Context) {
-	users, err := usersRepository.FindAll()
+func (u *usersController) Users(c *gin.Context) {
+	users, err := u.usersRepository.FindAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 	}
@@ -37,14 +38,14 @@ func (*usersController) Users(c *gin.Context) {
 }
 
 // curl -v -X POST -H "Content-type: application/json" -d '{"name": "Alex Murer", "email": "alex@example.com", "address": "Los Angeles, USA", "job": "artist"}' http://localhost:8080/api/v1/user
-func (*usersController) CreateUser(c *gin.Context) {
-	user, err := usersService.GetUsersParam(c)
+func (u *usersController) CreateUser(c *gin.Context) {
+	user, err := u.usersService.GetUsersParam(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
 	}
 
-	errs := usersService.Validator(user)
+	errs := u.usersService.Validator(user)
 	if errs != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: errs})
 		return
@@ -54,7 +55,7 @@ func (*usersController) CreateUser(c *gin.Context) {
 	user.CreatedAt = now
 	user.UpdatedAt = now
 
-	_, err = usersRepository.Save(user)
+	_, err = u.usersRepository.Save(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
 		return
