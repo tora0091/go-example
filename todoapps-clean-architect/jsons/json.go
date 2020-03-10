@@ -1,15 +1,15 @@
 package jsons
 
 type JSONStatusOKResponse struct {
-	Status int `json:"status"`
+	Status int `json:"Status"`
 }
 
 type JSONStatusOKWithDataResponse struct {
-	Status int         `json:"status"`
-	Data   interface{} `json:"data"`
+	Status int         `json:"Status"`
+	Data   interface{} `json:"Data"`
 }
 
 type JSONErrorResponse struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
+	Status  int    `json:"Status"`
+	Message string `json:"Message"`
 }
