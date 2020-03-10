@@ -1,14 +1,13 @@
 package main
 
 import (
-	"go-example/todoapps-clean-architect/repository"
-	"go-example/todoapps-clean-architect/service"
-
 	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 
 	"go-example/todoapps-clean-architect/controllers"
 	"go-example/todoapps-clean-architect/database"
+	"go-example/todoapps-clean-architect/repository"
+	"go-example/todoapps-clean-architect/service"
 )
 
 var (
