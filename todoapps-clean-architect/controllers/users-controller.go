@@ -33,6 +33,7 @@ func (u *usersController) Users(c *gin.Context) {
 	users, err := u.usersRepository.FindAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
+		return
 	}
 	c.JSON(http.StatusOK, jsons.JSONStatusOKWithDataResponse{Status: http.StatusOK, Data: users})
 }

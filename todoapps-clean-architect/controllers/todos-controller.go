@@ -36,6 +36,7 @@ func (t *todosController) Todos(c *gin.Context) {
 	todos, err := t.todosRepository.FindAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, jsons.JSONErrorResponse{Status: http.StatusInternalServerError, Message: err.Error()})
+		return
 	}
 	c.JSON(http.StatusOK, jsons.JSONStatusOKWithDataResponse{Status: http.StatusOK, Data: todos})
 }
@@ -67,6 +68,7 @@ func (t *todosController) CreateTodo(c *gin.Context) {
 	err = t.todosService.Validator(todo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
+		return
 	}
 
 	now := time.Now()
@@ -98,6 +100,7 @@ func (t *todosController) UpdateTodo(c *gin.Context) {
 	err = t.todosService.Validator(updateData)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, jsons.JSONErrorResponse{Status: http.StatusBadRequest, Message: err.Error()})
+		return
 	}
 
 	updateData.UpdatedAt = time.Now()
