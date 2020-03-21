@@ -1,0 +1,19 @@
+// protoc -I proto/ proto/food-factory.proto --go_out=plugins=grpc:proto
+syntax = "proto3";
+
+package proto;
+
+service FoodFactory {
+    rpc GetFoodByID (FoodResponse) returns (FoodReply) {}
+}
+
+message FoodResponse {
+    string code = 1;
+}
+
+message FoodReply {
+    string code = 1;
+    string name = 2;
+    int64 price = 3;
+    string other = 4;
+}

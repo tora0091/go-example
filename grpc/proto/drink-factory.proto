@@ -1,0 +1,20 @@
+// protoc -I proto/ proto/drink-factory.proto --go_out=plugins=grpc:proto
+syntax = "proto3";
+
+package proto;
+
+service DrinkFactory {
+    rpc GetDrinkByID (DrinkResponse) returns (DrinkReply) {}
+}
+
+message DrinkResponse {
+    string code = 1;
+}
+
+message DrinkReply {
+    string code = 1;
+    string name = 2;
+    int64 price = 3;
+    string recipe = 4;
+    string other = 5;
+}
