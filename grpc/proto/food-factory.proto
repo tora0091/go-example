@@ -16,4 +16,5 @@ message FoodReply {
     string name = 2;
     int64 price = 3;
     string other = 4;
+    map<string, string> drink = 5;
 }
