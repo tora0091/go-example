@@ -1,6 +1,8 @@
+// ex: tcpdump -X -i wlp3s0 tcp and port 443
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
 	"time"
@@ -30,6 +32,14 @@ func main() {
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	for packet := range packetSource.Packets() {
-		fmt.Println(packet)
+		// applayer := packet.ApplicationLayer()
+		// if applayer == nil {
+		// 	continue
+		// }
+		// payload := applayer.Payload()
+		// fmt.Println(string(payload))
+
+		fmt.Printf("%s\n", packet)
+		fmt.Printf("%s", hex.Dump(packet.Data()))
 	}
 }
