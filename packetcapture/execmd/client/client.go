@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -9,7 +10,11 @@ import (
 )
 
 func main() {
-	conn, err := net.Dial("tcp", "localhost:15051")
+	host := flag.String("host", "localhost", "set target host name or ip address")
+	flag.Parse()
+
+	hostname := *host + ":15051"
+	conn, err := net.Dial("tcp", hostname)
 	if err != nil {
 		log.Fatalln(err)
 	}
