@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -25,5 +26,12 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
+		buf := make([]byte, 1024)
+		n, err := conn.Read(buf)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Println(string(buf[:n]))
 	}
 }
